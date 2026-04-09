@@ -1,0 +1,29 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+.vs/
+*.DotSettings.user
+packages/
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+publish/
+
+## NuGet
+*.nupkg
+
+## IDE
+.idea/
+*.swp
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Scripts
+setup-refs.ps1
+install-packages.ps1

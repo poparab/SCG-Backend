@@ -1,0 +1,6 @@
+@SCG.API_HostAddress = http://localhost:5155
+
+GET {{SCG.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

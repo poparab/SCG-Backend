@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SCG.Rules.Domain\SCG.Rules.Domain.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\SCG.Application.Abstractions\SCG.Application.Abstractions.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

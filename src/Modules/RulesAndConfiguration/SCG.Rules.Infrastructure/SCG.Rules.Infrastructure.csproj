@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SCG.Rules.Application\SCG.Rules.Application.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\SCG.Infrastructure.Common\SCG.Infrastructure.Common.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
