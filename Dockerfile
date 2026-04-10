@@ -24,7 +24,7 @@ COPY src/Modules/RulesAndConfiguration/SCG.Rules.Application/SCG.Rules.Applicati
 COPY src/Modules/RulesAndConfiguration/SCG.Rules.Domain/SCG.Rules.Domain.csproj src/Modules/RulesAndConfiguration/SCG.Rules.Domain/
 COPY src/Modules/RulesAndConfiguration/SCG.Rules.Infrastructure/SCG.Rules.Infrastructure.csproj src/Modules/RulesAndConfiguration/SCG.Rules.Infrastructure/
 
-RUN dotnet restore SCG.sln
+RUN dotnet restore src/Presentation/SCG.API/SCG.API.csproj
 
 # Copy everything and build
 COPY . .
