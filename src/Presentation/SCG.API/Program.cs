@@ -90,11 +90,17 @@ try
     {
         options.AddPolicy("AllowAngularDev", policy =>
         {
-            policy.WithOrigins(
+            var corsOrigins = builder.Configuration["CORS:Origins"];
+            var origins = !string.IsNullOrEmpty(corsOrigins)
+                ? corsOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                : new[]
+                {
                     "http://localhost:4200", "https://localhost:4200",
                     "http://localhost:4201", "https://localhost:4201",
                     "http://localhost:4203", "https://localhost:4203",
-                    "http://localhost:4204", "https://localhost:4204")
+                    "http://localhost:4204", "https://localhost:4204"
+                };
+            policy.WithOrigins(origins)
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -140,7 +146,7 @@ try
     app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     app.UseSerilogRequestLogging();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
         app.UseSwagger();
         app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "SCG API v1"));
@@ -161,7 +167,7 @@ try
         Predicate = check => check.Tags.Contains("ready")
     });
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
     {
         app.UseHangfireDashboard("/hangfire");
     }
