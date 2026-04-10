@@ -12,14 +12,31 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageReference Include="FluentAssertions" Version="7.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Presentation\SCG.API\SCG.API.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\SCG.SharedKernel\SCG.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\SCG.Application.Abstractions\SCG.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AgencyManagement\SCG.AgencyManagement.Application\SCG.AgencyManagement.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AgencyManagement\SCG.AgencyManagement.Domain\SCG.AgencyManagement.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\AgencyManagement\SCG.AgencyManagement.Infrastructure\SCG.AgencyManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\SCG.Identity.Application\SCG.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\SCG.Identity.Domain\SCG.Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\SCG.Identity.Infrastructure\SCG.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InquiryManagement\SCG.InquiryManagement.Application\SCG.InquiryManagement.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InquiryManagement\SCG.InquiryManagement.Domain\SCG.InquiryManagement.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\InquiryManagement\SCG.InquiryManagement.Infrastructure\SCG.InquiryManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\RulesAndConfiguration\SCG.Rules.Application\SCG.Rules.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\RulesAndConfiguration\SCG.Rules.Domain\SCG.Rules.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\RulesAndConfiguration\SCG.Rules.Infrastructure\SCG.Rules.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

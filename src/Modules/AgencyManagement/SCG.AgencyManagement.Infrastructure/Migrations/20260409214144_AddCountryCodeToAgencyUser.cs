@@ -1,0 +1,31 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace SCG.AgencyManagement.Infrastructure.Migrations
+{
+    /// <inheritdoc />
+    public partial class AddCountryCodeToAgencyUser : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "CountryCode",
+                schema: "agency",
+                table: "AgencyUsers",
+                type: "nvarchar(5)",
+                maxLength: 5,
+                nullable: true);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "CountryCode",
+                schema: "agency",
+                table: "AgencyUsers");
+        }
+    }
+}

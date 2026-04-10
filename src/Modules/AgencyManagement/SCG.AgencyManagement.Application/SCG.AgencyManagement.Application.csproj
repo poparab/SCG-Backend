@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SCG.AgencyManagement.Domain\SCG.AgencyManagement.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\SCG.Application.Abstractions\SCG.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Identity\SCG.Identity.Application\SCG.Identity.Application.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,5 +11,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SCG.UnitTests" />
+  </ItemGroup>
 
 </Project>

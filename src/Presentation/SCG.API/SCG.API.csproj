@@ -15,6 +15,10 @@
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.14" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -30,7 +34,9 @@
     <ProjectReference Include="..\..\Modules\AgencyManagement\SCG.AgencyManagement.Infrastructure\SCG.AgencyManagement.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Identity\SCG.Identity.Infrastructure\SCG.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\InquiryManagement\SCG.InquiryManagement.Infrastructure\SCG.InquiryManagement.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\InquiryManagement\SCG.InquiryManagement.Application\SCG.InquiryManagement.Application.csproj" />
     <ProjectReference Include="..\..\Modules\RulesAndConfiguration\SCG.Rules.Infrastructure\SCG.Rules.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\RulesAndConfiguration\SCG.Rules.Application\SCG.Rules.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Notification\SCG.Notification.Infrastructure\SCG.Notification.Infrastructure.csproj" />
     <ProjectReference Include="..\..\BuildingBlocks\SCG.Infrastructure.Common\SCG.Infrastructure.Common.csproj" />
   </ItemGroup>

@@ -2,7 +2,12 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using SCG.AgencyManagement.Infrastructure;
+using SCG.Identity.Infrastructure;
+using SCG.InquiryManagement.Infrastructure;
 using SCG.Infrastructure.Common.Middleware;
+using SCG.Notification.Infrastructure;
+using SCG.Rules.Infrastructure;
 using Serilog;
 using System.Text;
 
@@ -44,11 +49,16 @@ try
     builder.Services.AddMediatR(cfg =>
     {
         cfg.RegisterServicesFromAssemblies(
-            typeof(SCG.AgencyManagement.Application.Class1).Assembly,
-            typeof(SCG.Identity.Application.Class1).Assembly,
-            typeof(SCG.InquiryManagement.Application.Class1).Assembly,
-            typeof(SCG.Rules.Application.Class1).Assembly,
-            typeof(SCG.Notification.Application.Class1).Assembly
+            typeof(SCG.AgencyManagement.Application.Commands.RegisterAgency.RegisterAgencyCommand).Assembly,
+            typeof(SCG.Identity.Application.Commands.Login.LoginCommand).Assembly,
+            typeof(SCG.Rules.Application.Commands.AddNationality.AddNationalityCommand).Assembly,
+            typeof(SCG.InquiryManagement.Application.Commands.CreateBatch.CreateBatchCommand).Assembly,
+            typeof(SCG.AgencyManagement.Infrastructure.AgencyManagementServiceExtensions).Assembly,
+            typeof(SCG.Identity.Infrastructure.IdentityServiceExtensions).Assembly,
+            typeof(SCG.InquiryManagement.Infrastructure.InquiryManagementServiceExtensions).Assembly,
+            typeof(SCG.Rules.Infrastructure.RulesServiceExtensions).Assembly,
+            typeof(SCG.Notification.Infrastructure.NotificationServiceExtensions).Assembly,
+            typeof(Program).Assembly
         );
     });
 
@@ -80,7 +90,11 @@ try
     {
         options.AddPolicy("AllowAngularDev", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+            policy.WithOrigins(
+                    "http://localhost:4200", "https://localhost:4200",
+                    "http://localhost:4201", "https://localhost:4201",
+                    "http://localhost:4203", "https://localhost:4203",
+                    "http://localhost:4204", "https://localhost:4204")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -88,7 +102,11 @@ try
     });
 
     // -- Controllers + Swagger
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -100,10 +118,18 @@ try
         });
     });
 
+    // -- Module Registration (EF Core DbContexts + DI)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    builder.Services.AddAgencyManagementModule(connectionString);
+    builder.Services.AddIdentityModule(connectionString);
+    builder.Services.AddInquiryManagementModule(connectionString);
+    builder.Services.AddRulesModule(connectionString);
+    builder.Services.AddNotificationModule(connectionString);
+
     // -- Health Checks
     builder.Services.AddHealthChecks()
         .AddSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection") ?? "",
+            connectionString,
             name: "sqlserver",
             tags: ["db", "ready"]);
 
