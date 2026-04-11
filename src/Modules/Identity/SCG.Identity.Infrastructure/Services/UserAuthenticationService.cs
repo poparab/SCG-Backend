@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SCG.AgencyManagement.Domain.Enums;
 using SCG.AgencyManagement.Infrastructure.Persistence;
 using SCG.Identity.Application.Services;
 using SCG.Identity.Infrastructure.Persistence;
@@ -34,7 +35,7 @@ internal sealed class UserAuthenticationService : IUserAuthenticationService
             return new AuthenticatedUser(
                 user.Id,
                 user.Email,
-                user.Role.ToString(),
+                MapAgencyRole(user.Role),
                 user.PasswordHash,
                 user.AgencyId,
                 user.Agency.Status.ToString(),
@@ -80,7 +81,7 @@ internal sealed class UserAuthenticationService : IUserAuthenticationService
                 : $"{agencyUser.FirstNameEn} {agencyUser.LastNameEn}";
             return new AuthenticatedUser(
                 agencyUser.Id, agencyUser.Email,
-                agencyUser.Role.ToString(), agencyUser.PasswordHash,
+                MapAgencyRole(agencyUser.Role), agencyUser.PasswordHash,
                 agencyUser.AgencyId, agencyUser.Agency.Status.ToString(),
                 fullName, agencyUser.Agency.NameEn);
         }
@@ -99,4 +100,13 @@ internal sealed class UserAuthenticationService : IUserAuthenticationService
 
         return null;
     }
+
+    private static string MapAgencyRole(AgencyUserRole role)
+        => role switch
+        {
+            AgencyUserRole.Admin => "Agency",
+            AgencyUserRole.DataEntry => "AgencyRepresentative",
+            AgencyUserRole.Reviewer => "AgencyRepresentative",
+            _ => "AgencyRepresentative"
+        };
 }

@@ -186,21 +186,22 @@ try
     builder.Services.AddRulesModule(connectionString);
     builder.Services.AddNotificationModule(connectionString);
 
-    // -- Rate Limiting
+    // -- Rate Limiting (relaxed in Development for E2E testing)
+    var isDevelopment = builder.Environment.IsDevelopment();
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
         options.AddFixedWindowLimiter("auth", opt =>
         {
-            opt.PermitLimit = 10;
+            opt.PermitLimit = isDevelopment ? 200 : 10;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });
 
         options.AddSlidingWindowLimiter("api", opt =>
         {
-            opt.PermitLimit = 100;
+            opt.PermitLimit = isDevelopment ? 1000 : 100;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.SegmentsPerWindow = 4;
             opt.QueueLimit = 0;
@@ -208,7 +209,7 @@ try
 
         options.AddFixedWindowLimiter("batch", opt =>
         {
-            opt.PermitLimit = 5;
+            opt.PermitLimit = isDevelopment ? 50 : 5;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });

@@ -159,9 +159,19 @@ public class AgenciesController : ControllerBase
     }
 
     [HttpGet("{id:guid}/nationalities")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin,Agency,AgencyRepresentative")]
     public async Task<IActionResult> GetAgencyNationalities(Guid id, CancellationToken ct)
     {
+        var role = User.FindFirst("role")?.Value;
+        var agencyIdClaim = User.FindFirst("agencyId")?.Value;
+
+        if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase)
+            && (!Guid.TryParse(agencyIdClaim, out var agencyId) || agencyId != id))
+        {
+            return Forbid();
+        }
+
         var query = new GetAgencyNationalitiesQuery(id);
         var result = await _sender.Send(query, ct);
 
