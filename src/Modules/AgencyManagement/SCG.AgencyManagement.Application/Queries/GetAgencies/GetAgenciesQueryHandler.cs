@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Queries.GetAgencies;
 
-internal sealed class GetAgenciesQueryHandler : IQueryHandler<GetAgenciesQuery, PagedResult<AgencyListItemDto>>
+public sealed class GetAgenciesQueryHandler : IQueryHandler<GetAgenciesQuery, PagedResult<AgencyListItemDto>>
 {
     private readonly IAgencyRepository _repository;
 

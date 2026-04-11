@@ -1,4 +1,5 @@
 using SCG.AgencyManagement.Domain.Enums;
+using SCG.AgencyManagement.Domain.Events;
 using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Domain.Entities;
@@ -52,12 +53,14 @@ public sealed class Agency : AggregateRoot<Guid>
     {
         Status = AgencyStatus.Approved;
         RejectionReason = null;
+        RaiseDomainEvent(new AgencyApprovedDomainEvent(Id));
     }
 
     public void Reject(string reason)
     {
         Status = AgencyStatus.Rejected;
         RejectionReason = reason;
+        RaiseDomainEvent(new AgencyRejectedDomainEvent(Id, reason));
     }
 
     public void Suspend(string reason)
@@ -100,6 +103,8 @@ public sealed class Agency : AggregateRoot<Guid>
 
         agency._users.Add(user);
         agency.Wallet = Wallet.Create(agency.Id);
+
+        agency.RaiseDomainEvent(new AgencyRegisteredDomainEvent(agency.Id, email));
 
         return agency;
     }

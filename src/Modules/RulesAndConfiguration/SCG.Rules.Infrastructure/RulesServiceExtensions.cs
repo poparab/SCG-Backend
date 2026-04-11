@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SCG.Application.Abstractions.Services;
 using SCG.Rules.Application.Abstractions;
 using SCG.Rules.Infrastructure.Persistence;
 using SCG.Rules.Infrastructure.Repositories;
+using SCG.Rules.Infrastructure.Services;
 
 namespace SCG.Rules.Infrastructure;
 
@@ -17,6 +19,7 @@ public static class RulesServiceExtensions
             }));
 
         services.AddScoped<INationalityRepository, NationalityRepository>();
+        services.AddScoped<IPricingService, PricingServiceAdapter>();
 
         return services;
     }

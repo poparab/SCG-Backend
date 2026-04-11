@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,8 @@ using SCG.Rules.Application.Queries.GetAgencyNationalities;
 namespace SCG.API.Controllers;
 
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/agencies")]
 [Route("api/agencies")]
 [Authorize]
 public class AgenciesController : ControllerBase

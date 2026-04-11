@@ -1,4 +1,7 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using SCG.Application.Abstractions.Persistence;
 using SCG.SharedKernel;
 
@@ -42,7 +45,14 @@ public abstract class BaseDbContext(DbContextOptions options) : DbContext(option
 
         domainEntities.ForEach(e => e.ClearDomainEvents());
 
-        // Domain events will be dispatched via MediatR when configured
-        // For now, events are cleared after save
+        if (domainEvents.Count == 0) return;
+
+        var publisher = ((IInfrastructure<IServiceProvider>)this).Instance.GetService<IPublisher>();
+        if (publisher is null) return;
+
+        foreach (var domainEvent in domainEvents)
+        {
+            await publisher.Publish(domainEvent, cancellationToken);
+        }
     }
 }

@@ -19,6 +19,10 @@ internal sealed class InquiryRepository : IInquiryRepository
     public async Task AddRangeAsync(IEnumerable<Inquiry> inquiries, CancellationToken ct = default)
         => await _db.Inquiries.AddRangeAsync(inquiries, ct);
 
+    public async Task<int> CountOnDateAsync(DateTime date, CancellationToken ct = default)
+        => await _db.Inquiries
+            .CountAsync(i => i.CreatedAt.Date == date, ct);
+
     public async Task SaveChangesAsync(CancellationToken ct = default)
         => await _db.SaveChangesAsync(ct);
 }

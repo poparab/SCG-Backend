@@ -64,4 +64,39 @@ internal sealed class UserAuthenticationService : IUserAuthenticationService
 
         return null;
     }
+
+    public async Task<AuthenticatedUser?> GetUserByIdAsync(Guid userId, CancellationToken ct = default)
+    {
+        // Try agency user first
+        var agencyUser = await _agencyDb.AgencyUsers
+            .AsNoTracking()
+            .Include(u => u.Agency)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.IsActive, ct);
+
+        if (agencyUser is not null)
+        {
+            var fullName = string.IsNullOrWhiteSpace(agencyUser.LastNameEn)
+                ? agencyUser.FirstNameEn
+                : $"{agencyUser.FirstNameEn} {agencyUser.LastNameEn}";
+            return new AuthenticatedUser(
+                agencyUser.Id, agencyUser.Email,
+                agencyUser.Role.ToString(), agencyUser.PasswordHash,
+                agencyUser.AgencyId, agencyUser.Agency.Status.ToString(),
+                fullName, agencyUser.Agency.NameEn);
+        }
+
+        // Try admin user
+        var admin = await _identityDb.AdminUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == userId && a.IsActive, ct);
+
+        if (admin is not null)
+        {
+            return new AuthenticatedUser(
+                admin.Id, admin.Email, admin.Role,
+                admin.PasswordHash, null, null, null, null);
+        }
+
+        return null;
+    }
 }

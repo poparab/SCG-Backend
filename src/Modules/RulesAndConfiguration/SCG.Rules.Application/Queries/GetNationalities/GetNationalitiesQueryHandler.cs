@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Queries.GetNationalities;
 
-internal sealed class GetNationalitiesQueryHandler : IQueryHandler<GetNationalitiesQuery, PagedResult<NationalityDto>>
+public sealed class GetNationalitiesQueryHandler : IQueryHandler<GetNationalitiesQuery, PagedResult<NationalityDto>>
 {
     private readonly INationalityRepository _repository;
 

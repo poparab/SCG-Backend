@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Commands.UpdateNationalityFee;
 
-internal sealed class UpdateNationalityFeeCommandHandler : ICommandHandler<UpdateNationalityFeeCommand>
+public sealed class UpdateNationalityFeeCommandHandler : ICommandHandler<UpdateNationalityFeeCommand>
 {
     private readonly INationalityRepository _repository;
 

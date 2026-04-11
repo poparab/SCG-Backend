@@ -1,23 +1,27 @@
+using System.Security.Cryptography;
 using SCG.Application.Abstractions.Messaging;
 using SCG.Identity.Application.Services;
 using SCG.SharedKernel;
 
 namespace SCG.Identity.Application.Commands.Login;
 
-internal sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginResponse>
+public sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginResponse>
 {
     private readonly IUserAuthenticationService _authService;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IRefreshTokenRepository _refreshTokenRepo;
 
     public LoginCommandHandler(
         IUserAuthenticationService authService,
         IPasswordHasher passwordHasher,
-        IJwtTokenGenerator jwtTokenGenerator)
+        IJwtTokenGenerator jwtTokenGenerator,
+        IRefreshTokenRepository refreshTokenRepo)
     {
         _authService = authService;
         _passwordHasher = passwordHasher;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _refreshTokenRepo = refreshTokenRepo;
     }
 
     public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -45,7 +49,17 @@ internal sealed class LoginCommandHandler : ICommandHandler<LoginCommand, LoginR
             user.FullName,
             user.AgencyName);
 
-        var response = new LoginResponse(token, user.Email, user.Role, user.AgencyId);
+        // Generate refresh token
+        var refreshTokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var refreshToken = Identity.Domain.Entities.RefreshToken.Create(
+            user.UserId,
+            refreshTokenValue,
+            DateTime.UtcNow.AddDays(7));
+
+        await _refreshTokenRepo.AddAsync(refreshToken, cancellationToken);
+        await _refreshTokenRepo.SaveChangesAsync(cancellationToken);
+
+        var response = new LoginResponse(token, refreshTokenValue, user.Email, user.Role, user.AgencyId);
         return Result<LoginResponse>.Success(response);
     }
 }

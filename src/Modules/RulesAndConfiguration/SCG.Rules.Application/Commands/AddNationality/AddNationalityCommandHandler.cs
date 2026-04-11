@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Commands.AddNationality;
 
-internal sealed class AddNationalityCommandHandler : ICommandHandler<AddNationalityCommand, Guid>
+public sealed class AddNationalityCommandHandler : ICommandHandler<AddNationalityCommand, Guid>
 {
     private readonly INationalityRepository _repository;
 

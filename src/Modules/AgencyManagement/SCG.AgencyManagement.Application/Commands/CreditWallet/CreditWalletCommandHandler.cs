@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Commands.CreditWallet;
 
-internal sealed class CreditWalletCommandHandler : ICommandHandler<CreditWalletCommand, CreditWalletResponse>
+public sealed class CreditWalletCommandHandler : ICommandHandler<CreditWalletCommand, CreditWalletResponse>
 {
     private readonly IWalletRepository _walletRepository;
 

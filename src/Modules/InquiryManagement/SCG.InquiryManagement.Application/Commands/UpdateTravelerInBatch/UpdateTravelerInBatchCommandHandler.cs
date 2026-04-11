@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.InquiryManagement.Application.Commands.UpdateTravelerInBatch;
 
-internal sealed class UpdateTravelerInBatchCommandHandler : ICommandHandler<UpdateTravelerInBatchCommand>
+public sealed class UpdateTravelerInBatchCommandHandler : ICommandHandler<UpdateTravelerInBatchCommand>
 {
     private readonly IBatchRepository _batchRepository;
 

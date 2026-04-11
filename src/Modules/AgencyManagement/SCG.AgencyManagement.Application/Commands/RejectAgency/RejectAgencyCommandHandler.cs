@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Commands.RejectAgency;
 
-internal sealed class RejectAgencyCommandHandler : ICommandHandler<RejectAgencyCommand>
+public sealed class RejectAgencyCommandHandler : ICommandHandler<RejectAgencyCommand>
 {
     private readonly IAgencyRepository _repository;
 

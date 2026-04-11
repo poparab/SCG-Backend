@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SCG.AgencyManagement.Application.Abstractions;
 using SCG.AgencyManagement.Infrastructure.Persistence;
+using SCG.AgencyManagement.Infrastructure.Services;
 using SCG.Application.Abstractions.Persistence;
+using SCG.Application.Abstractions.Services;
 
 namespace SCG.AgencyManagement.Infrastructure;
 
@@ -19,6 +21,7 @@ public static class AgencyManagementServiceExtensions
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AgencyDbContext>());
         services.AddScoped<IAgencyRepository, AgencyRepository>();
         services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IWalletService, WalletServiceAdapter>();
 
         return services;
     }

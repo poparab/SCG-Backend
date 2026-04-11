@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,8 @@ using SCG.InquiryManagement.Domain.Enums;
 namespace SCG.API.Controllers;
 
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/inquiries")]
 [Route("api/inquiries")]
 [Authorize]
 public class InquiriesController : ControllerBase

@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.InquiryManagement.Application.Commands.CreateBatch;
 
-internal sealed class CreateBatchCommandHandler : ICommandHandler<CreateBatchCommand, Guid>
+public sealed class CreateBatchCommandHandler : ICommandHandler<CreateBatchCommand, Guid>
 {
     private readonly IBatchRepository _batchRepository;
 

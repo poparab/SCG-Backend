@@ -7,5 +7,6 @@ public interface IBatchRepository
     Task<Batch?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<Batch?> GetByIdWithTravelersAsync(Guid id, CancellationToken ct = default);
     Task AddAsync(Batch batch, CancellationToken ct = default);
+    Task<int> CountSubmittedOnDateAsync(DateTime date, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

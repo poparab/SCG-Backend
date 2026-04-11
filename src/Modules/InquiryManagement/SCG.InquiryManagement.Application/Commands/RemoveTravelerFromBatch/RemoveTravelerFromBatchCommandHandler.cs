@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.InquiryManagement.Application.Commands.RemoveTravelerFromBatch;
 
-internal sealed class RemoveTravelerFromBatchCommandHandler : ICommandHandler<RemoveTravelerFromBatchCommand>
+public sealed class RemoveTravelerFromBatchCommandHandler : ICommandHandler<RemoveTravelerFromBatchCommand>
 {
     private readonly IBatchRepository _batchRepository;
 

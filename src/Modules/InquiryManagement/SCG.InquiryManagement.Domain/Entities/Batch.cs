@@ -1,4 +1,5 @@
 using SCG.InquiryManagement.Domain.Enums;
+using SCG.InquiryManagement.Domain.Events;
 using SCG.SharedKernel;
 
 namespace SCG.InquiryManagement.Domain.Entities;
@@ -77,6 +78,7 @@ public sealed class Batch : AggregateRoot<Guid>
         PaymentReference = paymentReference;
         TotalFee = totalFee;
         SubmittedAt = DateTime.UtcNow;
+        RaiseDomainEvent(new BatchSubmittedDomainEvent(Id, AgencyId, TravelerCount));
     }
 
     public void MarkCompleted() => Status = BatchStatus.Completed;

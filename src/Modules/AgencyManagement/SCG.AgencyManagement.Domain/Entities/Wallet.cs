@@ -1,3 +1,4 @@
+using SCG.AgencyManagement.Domain.Events;
 using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Domain.Entities;
@@ -44,6 +45,7 @@ public sealed class Wallet : Entity<Guid>
         Balance -= amount;
         var txn = WalletTransaction.CreateDebit(Id, amount, referenceNumber, notes, createdBy);
         _transactions.Add(txn);
+        RaiseDomainEvent(new WalletDebitedDomainEvent(Id, AgencyId, amount, referenceNumber));
         return Result<WalletTransaction>.Success(txn);
     }
 

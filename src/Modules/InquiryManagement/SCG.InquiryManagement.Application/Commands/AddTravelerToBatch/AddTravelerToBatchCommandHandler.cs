@@ -6,7 +6,7 @@ using SCG.SharedKernel;
 
 namespace SCG.InquiryManagement.Application.Commands.AddTravelerToBatch;
 
-internal sealed class AddTravelerToBatchCommandHandler : ICommandHandler<AddTravelerToBatchCommand, Guid>
+public sealed class AddTravelerToBatchCommandHandler : ICommandHandler<AddTravelerToBatchCommand, Guid>
 {
     private readonly IBatchRepository _batchRepository;
 

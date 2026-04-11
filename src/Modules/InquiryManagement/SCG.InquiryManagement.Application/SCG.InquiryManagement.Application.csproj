@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\SCG.InquiryManagement.Domain\SCG.InquiryManagement.Domain.csproj" />
@@ -11,8 +11,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <InternalsVisibleTo Include="SCG.UnitTests" />
-  </ItemGroup>
+  <ItemGroup>  </ItemGroup>
 
 </Project>

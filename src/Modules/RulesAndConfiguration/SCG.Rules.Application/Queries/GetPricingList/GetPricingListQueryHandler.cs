@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Queries.GetPricingList;
 
-internal sealed class GetPricingListQueryHandler : IQueryHandler<GetPricingListQuery, IReadOnlyList<PricingListItemDto>>
+public sealed class GetPricingListQueryHandler : IQueryHandler<GetPricingListQuery, IReadOnlyList<PricingListItemDto>>
 {
     private readonly INationalityRepository _repository;
 

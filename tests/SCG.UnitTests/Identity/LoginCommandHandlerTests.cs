@@ -8,11 +8,12 @@ public sealed class LoginCommandHandlerTests
     private readonly IUserAuthenticationService _authService = Substitute.For<IUserAuthenticationService>();
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly IJwtTokenGenerator _jwtTokenGenerator = Substitute.For<IJwtTokenGenerator>();
+    private readonly IRefreshTokenRepository _refreshTokenRepo = Substitute.For<IRefreshTokenRepository>();
     private readonly LoginCommandHandler _sut;
 
     public LoginCommandHandlerTests()
     {
-        _sut = new LoginCommandHandler(_authService, _passwordHasher, _jwtTokenGenerator);
+        _sut = new LoginCommandHandler(_authService, _passwordHasher, _jwtTokenGenerator, _refreshTokenRepo);
     }
 
     private static AuthenticatedUser AgencyUser(string status = "Approved") => new(

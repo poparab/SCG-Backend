@@ -6,7 +6,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Queries.GetWalletTransactions;
 
-internal sealed class GetWalletTransactionsQueryHandler
+public sealed class GetWalletTransactionsQueryHandler
     : IQueryHandler<GetWalletTransactionsQuery, PagedResult<WalletTransactionDto>>
 {
     private readonly IWalletRepository _walletRepository;

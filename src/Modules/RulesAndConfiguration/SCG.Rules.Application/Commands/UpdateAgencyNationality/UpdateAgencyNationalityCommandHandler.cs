@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Commands.UpdateAgencyNationality;
 
-internal sealed class UpdateAgencyNationalityCommandHandler
+public sealed class UpdateAgencyNationalityCommandHandler
     : ICommandHandler<UpdateAgencyNationalityCommand>
 {
     private readonly INationalityRepository _repository;

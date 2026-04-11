@@ -4,7 +4,7 @@ using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Commands.ToggleNationalityInquiry;
 
-internal sealed class ToggleNationalityInquiryCommandHandler : ICommandHandler<ToggleNationalityInquiryCommand>
+public sealed class ToggleNationalityInquiryCommandHandler : ICommandHandler<ToggleNationalityInquiryCommand>
 {
     private readonly INationalityRepository _repository;
 

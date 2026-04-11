@@ -1,6 +1,8 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SCG.API.Contracts.Batches;
 using SCG.InquiryManagement.Application.Commands.AddTravelerToBatch;
 using SCG.InquiryManagement.Application.Commands.CreateBatch;
@@ -15,6 +17,8 @@ using SCG.InquiryManagement.Domain.Enums;
 namespace SCG.API.Controllers;
 
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/batches")]
 [Route("api/batches")]
 [Authorize]
 public class BatchesController : ControllerBase
@@ -141,6 +145,7 @@ public class BatchesController : ControllerBase
     }
 
     [HttpPost("{id:guid}/submit")]
+    [EnableRateLimiting("batch")]
     public async Task<IActionResult> SubmitBatch(Guid id, CancellationToken ct)
     {
         var command = new SubmitBatchCommand(id, GetUserId());

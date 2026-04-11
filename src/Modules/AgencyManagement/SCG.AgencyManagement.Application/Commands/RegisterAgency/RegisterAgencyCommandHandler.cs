@@ -6,7 +6,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Commands.RegisterAgency;
 
-internal sealed class RegisterAgencyCommandHandler : ICommandHandler<RegisterAgencyCommand, Guid>
+public sealed class RegisterAgencyCommandHandler : ICommandHandler<RegisterAgencyCommand, Guid>
 {
     private readonly IAgencyRepository _repository;
     private readonly IPasswordHasher _passwordHasher;

@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,8 @@ using SCG.Rules.Application.Queries.GetPricingList;
 namespace SCG.API.Controllers;
 
 [ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/nationalities")]
 [Route("api/nationalities")]
 [Authorize(Roles = "Admin,SuperAdmin")]
 public class NationalitiesController : ControllerBase

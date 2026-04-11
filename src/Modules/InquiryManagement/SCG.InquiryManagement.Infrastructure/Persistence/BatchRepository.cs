@@ -21,6 +21,10 @@ internal sealed class BatchRepository : IBatchRepository
     public async Task AddAsync(Batch batch, CancellationToken ct = default)
         => await _db.Batches.AddAsync(batch, ct);
 
+    public async Task<int> CountSubmittedOnDateAsync(DateTime date, CancellationToken ct = default)
+        => await _db.Batches
+            .CountAsync(b => b.SubmittedAt != null && b.SubmittedAt.Value.Date == date, ct);
+
     public async Task SaveChangesAsync(CancellationToken ct = default)
         => await _db.SaveChangesAsync(ct);
 }

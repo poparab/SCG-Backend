@@ -1,8 +1,13 @@
+using Asp.Versioning;
+using FluentValidation;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using SCG.AgencyManagement.Infrastructure;
+using SCG.API.Filters;
+using SCG.Application.Abstractions.Behaviors;
 using SCG.Identity.Infrastructure;
 using SCG.InquiryManagement.Infrastructure;
 using SCG.Infrastructure.Common.Middleware;
@@ -11,9 +16,14 @@ using SCG.Rules.Infrastructure;
 using Serilog;
 using System.Text;
 
+var configuration = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+    .AddEnvironmentVariables()
+    .Build();
+
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.Seq("http://localhost:5341")
+    .ReadFrom.Configuration(configuration)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.WithEnvironmentName()
@@ -27,6 +37,7 @@ try
     builder.Host.UseSerilog();
 
     // -- Authentication (JWT)
+    var jwtCookieName = "scg_auth";
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -41,18 +52,37 @@ try
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "SCG-Dev-Key-Must-Be-At-Least-32-Characters!"))
             };
+
+            // Read JWT from HttpOnly cookie if no Authorization header
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (string.IsNullOrEmpty(context.Token) &&
+                        context.Request.Cookies.TryGetValue(jwtCookieName, out var cookieToken))
+                    {
+                        context.Token = cookieToken;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
     builder.Services.AddAuthorization();
 
     // -- MediatR (CQRS-light)
+    var agencyAppAssembly = typeof(SCG.AgencyManagement.Application.Commands.RegisterAgency.RegisterAgencyCommand).Assembly;
+    var identityAppAssembly = typeof(SCG.Identity.Application.Commands.Login.LoginCommand).Assembly;
+    var rulesAppAssembly = typeof(SCG.Rules.Application.Commands.AddNationality.AddNationalityCommand).Assembly;
+    var inquiryAppAssembly = typeof(SCG.InquiryManagement.Application.Commands.CreateBatch.CreateBatchCommand).Assembly;
+
     builder.Services.AddMediatR(cfg =>
     {
         cfg.RegisterServicesFromAssemblies(
-            typeof(SCG.AgencyManagement.Application.Commands.RegisterAgency.RegisterAgencyCommand).Assembly,
-            typeof(SCG.Identity.Application.Commands.Login.LoginCommand).Assembly,
-            typeof(SCG.Rules.Application.Commands.AddNationality.AddNationalityCommand).Assembly,
-            typeof(SCG.InquiryManagement.Application.Commands.CreateBatch.CreateBatchCommand).Assembly,
+            agencyAppAssembly,
+            identityAppAssembly,
+            rulesAppAssembly,
+            inquiryAppAssembly,
             typeof(SCG.AgencyManagement.Infrastructure.AgencyManagementServiceExtensions).Assembly,
             typeof(SCG.Identity.Infrastructure.IdentityServiceExtensions).Assembly,
             typeof(SCG.InquiryManagement.Infrastructure.InquiryManagementServiceExtensions).Assembly,
@@ -60,7 +90,15 @@ try
             typeof(SCG.Notification.Infrastructure.NotificationServiceExtensions).Assembly,
             typeof(Program).Assembly
         );
+        cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
     });
+
+    // -- FluentValidation (validators from all module Application assemblies)
+    builder.Services.AddValidatorsFromAssembly(agencyAppAssembly);
+    builder.Services.AddValidatorsFromAssembly(identityAppAssembly);
+    builder.Services.AddValidatorsFromAssembly(rulesAppAssembly);
+    builder.Services.AddValidatorsFromAssembly(inquiryAppAssembly);
+    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
     // -- Hangfire (Background Processing)
     builder.Services.AddHangfire(config => config
@@ -108,11 +146,27 @@ try
     });
 
     // -- Controllers + Swagger
-    builder.Services.AddControllers()
+    builder.Services.AddControllers(options =>
+        {
+            options.Filters.Add<ApiResponseFilter>();
+        })
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
         });
+
+    // -- API Versioning
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    }).AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
+
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -131,6 +185,34 @@ try
     builder.Services.AddInquiryManagementModule(connectionString);
     builder.Services.AddRulesModule(connectionString);
     builder.Services.AddNotificationModule(connectionString);
+
+    // -- Rate Limiting
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        options.AddFixedWindowLimiter("auth", opt =>
+        {
+            opt.PermitLimit = 10;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.QueueLimit = 0;
+        });
+
+        options.AddSlidingWindowLimiter("api", opt =>
+        {
+            opt.PermitLimit = 100;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 4;
+            opt.QueueLimit = 0;
+        });
+
+        options.AddFixedWindowLimiter("batch", opt =>
+        {
+            opt.PermitLimit = 5;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.QueueLimit = 0;
+        });
+    });
 
     // -- Health Checks
     builder.Services.AddHealthChecks()
@@ -154,6 +236,19 @@ try
 
     app.UseHttpsRedirection();
     app.UseCors("AllowAngularDev");
+
+    // Security headers
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers["Content-Security-Policy"] =
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        await next();
+    });
+
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
@@ -171,6 +266,14 @@ try
     {
         app.UseHangfireDashboard("/hangfire");
     }
+
+    // Register recurring Hangfire jobs
+    RecurringJob.AddOrUpdate<SCG.InquiryManagement.Infrastructure.Jobs.BatchStatusCheckJob>(
+        "batch-status-check", job => job.ExecuteAsync(), "*/5 * * * *");
+    RecurringJob.AddOrUpdate<SCG.Notification.Infrastructure.Jobs.NotificationDispatchJob>(
+        "notification-dispatch", job => job.ExecuteAsync(), "*/2 * * * *");
+    RecurringJob.AddOrUpdate<SCG.AgencyManagement.Infrastructure.Jobs.WalletLowBalanceAlertJob>(
+        "wallet-low-balance", job => job.ExecuteAsync(), Cron.Daily());
 
     app.Run();
 }

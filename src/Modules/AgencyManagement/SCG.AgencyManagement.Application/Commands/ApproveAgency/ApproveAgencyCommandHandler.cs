@@ -5,7 +5,7 @@ using SCG.SharedKernel;
 
 namespace SCG.AgencyManagement.Application.Commands.ApproveAgency;
 
-internal sealed class ApproveAgencyCommandHandler : ICommandHandler<ApproveAgencyCommand>
+public sealed class ApproveAgencyCommandHandler : ICommandHandler<ApproveAgencyCommand>
 {
     private readonly IAgencyRepository _repository;
 
