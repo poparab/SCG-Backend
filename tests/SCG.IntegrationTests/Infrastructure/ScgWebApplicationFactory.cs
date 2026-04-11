@@ -51,7 +51,7 @@ public sealed class ScgWebApplicationFactory : WebApplicationFactory<Program>, I
             ApplyMigrations<NotificationDbContext>(scopedServices);
         });
 
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
     }
 
     private static void ReplaceDbContext<TContext>(IServiceCollection services, string connectionString)

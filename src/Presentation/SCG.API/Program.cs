@@ -100,28 +100,33 @@ try
     builder.Services.AddValidatorsFromAssembly(inquiryAppAssembly);
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-    // -- Hangfire (Background Processing)
-    builder.Services.AddHangfire(config => config
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings()
-        .UseSqlServerStorage(
-            builder.Configuration.GetConnectionString("HangfireConnection"),
-            new SqlServerStorageOptions
-            {
-                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                QueuePollInterval = TimeSpan.Zero,
-                UseRecommendedIsolationLevel = true,
-                DisableGlobalLocks = true,
-                SchemaName = "hangfire"
-            }));
+    var isTesting = builder.Environment.IsEnvironment("Testing");
 
-    builder.Services.AddHangfireServer(options =>
+    // -- Hangfire (Background Processing)
+    if (!isTesting)
     {
-        options.Queues = ["express", "standard", "batch"];
-        options.WorkerCount = Environment.ProcessorCount * 2;
-    });
+        builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(
+                builder.Configuration.GetConnectionString("HangfireConnection"),
+                new SqlServerStorageOptions
+                {
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.Zero,
+                    UseRecommendedIsolationLevel = true,
+                    DisableGlobalLocks = true,
+                    SchemaName = "hangfire"
+                }));
+
+        builder.Services.AddHangfireServer(options =>
+        {
+            options.Queues = ["express", "standard", "batch"];
+            options.WorkerCount = Environment.ProcessorCount * 2;
+        });
+    }
 
     // -- CORS
     builder.Services.AddCors(options =>
@@ -188,20 +193,21 @@ try
 
     // -- Rate Limiting (relaxed in Development for E2E testing)
     var isDevelopment = builder.Environment.IsDevelopment();
+    var isDevelopmentLike = isDevelopment || isTesting;
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
         options.AddFixedWindowLimiter("auth", opt =>
         {
-            opt.PermitLimit = isDevelopment ? 200 : 10;
+            opt.PermitLimit = isDevelopmentLike ? 200 : 10;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });
 
         options.AddSlidingWindowLimiter("api", opt =>
         {
-            opt.PermitLimit = isDevelopment ? 1000 : 100;
+            opt.PermitLimit = isDevelopmentLike ? 1000 : 100;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.SegmentsPerWindow = 4;
             opt.QueueLimit = 0;
@@ -209,7 +215,7 @@ try
 
         options.AddFixedWindowLimiter("batch", opt =>
         {
-            opt.PermitLimit = isDevelopment ? 50 : 5;
+            opt.PermitLimit = isDevelopmentLike ? 50 : 5;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });
@@ -263,18 +269,20 @@ try
         Predicate = check => check.Tags.Contains("ready")
     });
 
-    if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+    if (!app.Environment.IsEnvironment("Testing") && (app.Environment.IsDevelopment() || app.Environment.IsStaging()))
     {
         app.UseHangfireDashboard("/hangfire");
     }
 
-    // Register recurring Hangfire jobs
-    RecurringJob.AddOrUpdate<SCG.InquiryManagement.Infrastructure.Jobs.BatchStatusCheckJob>(
-        "batch-status-check", job => job.ExecuteAsync(), "*/5 * * * *");
-    RecurringJob.AddOrUpdate<SCG.Notification.Infrastructure.Jobs.NotificationDispatchJob>(
-        "notification-dispatch", job => job.ExecuteAsync(), "*/2 * * * *");
-    RecurringJob.AddOrUpdate<SCG.AgencyManagement.Infrastructure.Jobs.WalletLowBalanceAlertJob>(
-        "wallet-low-balance", job => job.ExecuteAsync(), Cron.Daily());
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        RecurringJob.AddOrUpdate<SCG.InquiryManagement.Infrastructure.Jobs.BatchStatusCheckJob>(
+            "batch-status-check", job => job.ExecuteAsync(), "*/5 * * * *");
+        RecurringJob.AddOrUpdate<SCG.Notification.Infrastructure.Jobs.NotificationDispatchJob>(
+            "notification-dispatch", job => job.ExecuteAsync(), "*/2 * * * *");
+        RecurringJob.AddOrUpdate<SCG.AgencyManagement.Infrastructure.Jobs.WalletLowBalanceAlertJob>(
+            "wallet-low-balance", job => job.ExecuteAsync(), Cron.Daily());
+    }
 
     app.Run();
 }
