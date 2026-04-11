@@ -191,9 +191,9 @@ try
     builder.Services.AddRulesModule(connectionString);
     builder.Services.AddNotificationModule(connectionString);
 
-    // -- Rate Limiting (relaxed in Development for E2E testing)
+    // -- Rate Limiting (relaxed in Development/Staging for E2E testing)
     var isDevelopment = builder.Environment.IsDevelopment();
-    var isDevelopmentLike = isDevelopment || isTesting;
+    var isDevelopmentLike = isDevelopment || isTesting || builder.Environment.IsStaging();
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
