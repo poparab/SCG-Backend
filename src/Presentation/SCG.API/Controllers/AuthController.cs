@@ -21,6 +21,15 @@ public class AuthController : ControllerBase
 
     public AuthController(ISender sender) => _sender = sender;
 
+    private CookieOptions AuthCookieOptions(DateTimeOffset? expires = null) => new()
+    {
+        HttpOnly = true,
+        Secure = Request.IsHttps,
+        SameSite = Request.IsHttps ? SameSiteMode.Strict : SameSiteMode.Lax,
+        Expires = expires,
+        Path = "/"
+    };
+
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterAgencyRequest request, CancellationToken ct)
     {
@@ -52,14 +61,8 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = result.Error });
 
         // Set HttpOnly cookie with JWT (access token)
-        Response.Cookies.Append("scg_auth", result.Value!.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(15),
-            Path = "/"
-        });
+        Response.Cookies.Append("scg_auth", result.Value!.Token,
+            AuthCookieOptions(DateTimeOffset.UtcNow.AddMinutes(15)));
 
         return Ok(result.Value);
     }
@@ -74,14 +77,8 @@ public class AuthController : ControllerBase
             return Unauthorized(new { error = result.Error });
 
         // Set new access token cookie
-        Response.Cookies.Append("scg_auth", result.Value!.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddMinutes(15),
-            Path = "/"
-        });
+        Response.Cookies.Append("scg_auth", result.Value!.Token,
+            AuthCookieOptions(DateTimeOffset.UtcNow.AddMinutes(15)));
 
         return Ok(result.Value);
     }
@@ -101,13 +98,7 @@ public class AuthController : ControllerBase
     [HttpPost("logout")]
     public IActionResult Logout()
     {
-        Response.Cookies.Delete("scg_auth", new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Path = "/"
-        });
+        Response.Cookies.Delete("scg_auth", AuthCookieOptions());
         return NoContent();
     }
 }
