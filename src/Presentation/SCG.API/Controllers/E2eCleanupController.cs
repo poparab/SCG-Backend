@@ -1,3 +1,4 @@
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -10,6 +11,7 @@ namespace SCG.API.Controllers;
 /// (identified by @test.com emails). Never available in production.
 /// </summary>
 [ApiController]
+[ApiVersionNeutral]
 [Route("api/e2e")]
 [Authorize(Roles = "SuperAdmin")]
 public class E2eCleanupController : ControllerBase
