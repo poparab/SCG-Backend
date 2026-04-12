@@ -200,14 +200,14 @@ try
 
         options.AddFixedWindowLimiter("auth", opt =>
         {
-            opt.PermitLimit = isDevelopmentLike ? 200 : 10;
+            opt.PermitLimit = isDevelopmentLike ? 1000 : 10;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });
 
         options.AddSlidingWindowLimiter("api", opt =>
         {
-            opt.PermitLimit = isDevelopmentLike ? 1000 : 100;
+            opt.PermitLimit = isDevelopmentLike ? 5000 : 100;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.SegmentsPerWindow = 4;
             opt.QueueLimit = 0;
@@ -215,7 +215,7 @@ try
 
         options.AddFixedWindowLimiter("batch", opt =>
         {
-            opt.PermitLimit = isDevelopmentLike ? 50 : 5;
+            opt.PermitLimit = isDevelopmentLike ? 200 : 5;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.QueueLimit = 0;
         });
