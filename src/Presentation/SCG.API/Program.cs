@@ -10,6 +10,7 @@ using SCG.API.Filters;
 using SCG.Application.Abstractions.Behaviors;
 using SCG.Identity.Infrastructure;
 using SCG.InquiryManagement.Infrastructure;
+using SCG.Infrastructure.Common;
 using SCG.Infrastructure.Common.Middleware;
 using SCG.Notification.Infrastructure;
 using SCG.Rules.Infrastructure;
@@ -185,11 +186,12 @@ try
 
     // -- Module Registration (EF Core DbContexts + DI)
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+    builder.Services.AddAuditSchema(connectionString);
     builder.Services.AddAgencyManagementModule(connectionString);
     builder.Services.AddIdentityModule(connectionString);
     builder.Services.AddInquiryManagementModule(connectionString);
     builder.Services.AddRulesModule(connectionString);
-    builder.Services.AddNotificationModule(connectionString);
+    builder.Services.AddNotificationModule(connectionString, builder.Configuration);
 
     // -- Rate Limiting (relaxed in Development/Staging for E2E testing)
     var isDevelopment = builder.Environment.IsDevelopment();

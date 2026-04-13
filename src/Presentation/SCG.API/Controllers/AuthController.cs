@@ -1,12 +1,15 @@
 using Asp.Versioning;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SCG.AgencyManagement.Application.Commands.RegisterAgency;
 using SCG.API.Contracts.Auth;
+using SCG.Identity.Application.Commands.ChangePassword;
 using SCG.Identity.Application.Commands.Login;
 using SCG.Identity.Application.Commands.RefreshToken;
 using SCG.Identity.Application.Commands.RevokeToken;
+using System.Security.Claims;
 
 namespace SCG.API.Controllers;
 
@@ -99,6 +102,24 @@ public class AuthController : ControllerBase
     public IActionResult Logout()
     {
         Response.Cookies.Delete("scg_auth", AuthCookieOptions());
+        return NoContent();
+    }
+
+    [HttpPut("change-password")]
+    [Authorize]
+    [EnableRateLimiting("api")]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request, CancellationToken ct)
+    {
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+        var loginType = role is "Admin" or "SuperAdmin" ? "Admin" : "Agency";
+
+        var command = new ChangePasswordCommand(email, request.CurrentPassword, request.NewPassword, loginType);
+        var result = await _sender.Send(command, ct);
+
+        if (result.IsFailure)
+            return BadRequest(new { error = result.Error });
+
         return NoContent();
     }
 }

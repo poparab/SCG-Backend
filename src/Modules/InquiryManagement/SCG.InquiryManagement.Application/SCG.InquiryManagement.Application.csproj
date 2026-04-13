@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SCG.InquiryManagement.Domain\SCG.InquiryManagement.Domain.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\SCG.Application.Abstractions\SCG.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Notification\SCG.Notification.Application\SCG.Notification.Application.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

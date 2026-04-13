@@ -109,4 +109,32 @@ internal sealed class UserAuthenticationService : IUserAuthenticationService
             AgencyUserRole.Reviewer => "AgencyRepresentative",
             _ => "AgencyRepresentative"
         };
+
+    public async Task UpdatePasswordHashAsync(Guid userId, string newPasswordHash, string loginType, CancellationToken ct = default)
+    {
+        if (loginType.Equals("agency", StringComparison.OrdinalIgnoreCase))
+        {
+            var user = await _agencyDb.AgencyUsers
+                .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+            if (user is not null)
+            {
+                user.UpdatePasswordHash(newPasswordHash);
+                await _agencyDb.SaveChangesAsync(ct);
+            }
+            return;
+        }
+
+        if (loginType.Equals("admin", StringComparison.OrdinalIgnoreCase))
+        {
+            var admin = await _identityDb.AdminUsers
+                .FirstOrDefaultAsync(a => a.Id == userId, ct);
+
+            if (admin is not null)
+            {
+                admin.UpdatePasswordHash(newPasswordHash);
+                await _identityDb.SaveChangesAsync(ct);
+            }
+        }
+    }
 }

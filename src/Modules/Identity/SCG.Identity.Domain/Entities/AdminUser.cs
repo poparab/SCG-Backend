@@ -26,4 +26,9 @@ public sealed class AdminUser : Entity<Guid>
     }
 
     public void RecordLogin() => LastLoginAt = DateTime.UtcNow;
+    public void UpdatePasswordHash(string newHash) => PasswordHash = newHash;
+    public void Deactivate() => IsActive = false;
+    public void Activate() => IsActive = true;
+    public void UpdateProfile(string fullName) => FullName = fullName;
+    public void UpdateRole(string role) => Role = role;
 }

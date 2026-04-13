@@ -14,4 +14,5 @@ public interface IUserAuthenticationService
 {
     Task<AuthenticatedUser?> GetUserByEmailAsync(string email, string loginType, CancellationToken ct = default);
     Task<AuthenticatedUser?> GetUserByIdAsync(Guid userId, CancellationToken ct = default);
+    Task UpdatePasswordHashAsync(Guid userId, string newPasswordHash, string loginType, CancellationToken ct = default);
 }
