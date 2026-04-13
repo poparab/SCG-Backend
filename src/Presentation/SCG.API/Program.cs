@@ -4,16 +4,22 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SCG.AgencyManagement.Infrastructure;
+using SCG.AgencyManagement.Infrastructure.Persistence;
 using SCG.API.Filters;
 using SCG.Application.Abstractions.Behaviors;
 using SCG.Identity.Infrastructure;
+using SCG.Identity.Infrastructure.Persistence;
 using SCG.InquiryManagement.Infrastructure;
+using SCG.InquiryManagement.Infrastructure.Persistence;
 using SCG.Infrastructure.Common;
 using SCG.Infrastructure.Common.Middleware;
 using SCG.Notification.Infrastructure;
+using SCG.Notification.Infrastructure.Persistence;
 using SCG.Rules.Infrastructure;
+using SCG.Rules.Infrastructure.Persistence;
 using Serilog;
 using System.Text;
 
@@ -284,6 +290,28 @@ try
             "notification-dispatch", job => job.ExecuteAsync(), "*/2 * * * *");
         RecurringJob.AddOrUpdate<SCG.AgencyManagement.Infrastructure.Jobs.WalletLowBalanceAlertJob>(
             "wallet-low-balance", job => job.ExecuteAsync(), Cron.Daily());
+    }
+
+    // -- Auto-migrate all module DbContexts on startup (skipped in Testing environment)
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        await using var migrationScope = app.Services.CreateAsyncScope();
+        var migrationLogger = migrationScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            migrationLogger.LogInformation("Applying pending database migrations...");
+            await migrationScope.ServiceProvider.GetRequiredService<AgencyDbContext>().Database.MigrateAsync();
+            await migrationScope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.MigrateAsync();
+            await migrationScope.ServiceProvider.GetRequiredService<InquiryDbContext>().Database.MigrateAsync();
+            await migrationScope.ServiceProvider.GetRequiredService<RulesDbContext>().Database.MigrateAsync();
+            await migrationScope.ServiceProvider.GetRequiredService<NotificationDbContext>().Database.MigrateAsync();
+            migrationLogger.LogInformation("All database migrations applied successfully");
+        }
+        catch (Exception ex)
+        {
+            migrationLogger.LogError(ex, "Database migration failed — startup aborted");
+            throw;
+        }
     }
 
     app.Run();
