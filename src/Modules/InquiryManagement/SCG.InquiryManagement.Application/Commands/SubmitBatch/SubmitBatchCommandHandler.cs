@@ -63,18 +63,16 @@ public sealed class SubmitBatchCommandHandler : ICommandHandler<SubmitBatchComma
             totalFee += fee.Value * group.Count();
         }
 
-        // 3. Generate batch reference: BTH-YYYYMMDD-NNNN
-        var today = DateTime.UtcNow.Date;
-        var todayBatchCount = await _batchRepo.CountSubmittedOnDateAsync(today, cancellationToken);
-        var batchRef = $"BTH-{today:yyyyMMdd}-{(todayBatchCount + 1):D4}";
+        // 3. Generate unique references that are safe under parallel submissions.
+        var now = DateTime.UtcNow;
+        var today = now.Date;
+        var batchRef = $"BTH-{now:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..27];
 
         // 4. Create individual inquiries for each traveler
-        var inquiryCounter = await _inquiryRepo.CountOnDateAsync(today, cancellationToken);
 
         foreach (var traveler in batch.Travelers)
         {
-            inquiryCounter++;
-            var inquiryRef = $"INQ-{today:yyyyMMdd}-{inquiryCounter:D6}";
+            var inquiryRef = $"INQ-{now:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..27];
 
             var inquiry = Inquiry.Create(
                 batch.InquiryTypeId,

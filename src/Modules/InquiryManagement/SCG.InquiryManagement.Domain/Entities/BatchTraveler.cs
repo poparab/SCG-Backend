@@ -21,6 +21,8 @@ public sealed class BatchTraveler : Entity<Guid>
     public string DepartureCountry { get; private set; } = default!;
     public string PurposeOfTravel { get; private set; } = default!;
     public string? FlightNumber { get; private set; }
+    public string? PassportImageDocumentPath { get; private set; }
+    public string? TicketImageDocumentPath { get; private set; }
     public int RowIndex { get; private set; }
 
     // Linked inquiry (created after payment)
@@ -41,7 +43,9 @@ public sealed class BatchTraveler : Entity<Guid>
         DateTime travelDate, string? arrivalAirport,
         string? transitCountries,
         DateTime passportExpiry, string departureCountry,
-        string purposeOfTravel, string? flightNumber)
+        string purposeOfTravel, string? flightNumber,
+        string passportImageDocumentPath,
+        string ticketImageDocumentPath)
     {
         return new BatchTraveler
         {
@@ -62,7 +66,9 @@ public sealed class BatchTraveler : Entity<Guid>
             PassportExpiry = passportExpiry,
             DepartureCountry = departureCountry,
             PurposeOfTravel = purposeOfTravel,
-            FlightNumber = flightNumber
+            FlightNumber = flightNumber,
+            PassportImageDocumentPath = passportImageDocumentPath,
+            TicketImageDocumentPath = ticketImageDocumentPath
         };
     }
 
@@ -76,7 +82,9 @@ public sealed class BatchTraveler : Entity<Guid>
         DateTime travelDate, string? arrivalAirport,
         string? transitCountries,
         DateTime passportExpiry, string departureCountry,
-        string purposeOfTravel, string? flightNumber)
+        string purposeOfTravel, string? flightNumber,
+        string? passportImageDocumentPath,
+        string? ticketImageDocumentPath)
     {
         FirstNameEn = firstNameEn;
         LastNameEn = lastNameEn;
@@ -93,5 +101,7 @@ public sealed class BatchTraveler : Entity<Guid>
         DepartureCountry = departureCountry;
         PurposeOfTravel = purposeOfTravel;
         FlightNumber = flightNumber;
+        PassportImageDocumentPath = passportImageDocumentPath;
+        TicketImageDocumentPath = ticketImageDocumentPath;
     }
 }

@@ -20,4 +20,6 @@ public sealed record UpdateTravelerInBatchCommand(
     DateTime PassportExpiry,
     string DepartureCountry,
     string PurposeOfTravel,
-    string? FlightNumber) : ICommand;
+    string? FlightNumber,
+    string? PassportImageDocumentPath,
+    string? TicketImageDocumentPath) : ICommand;

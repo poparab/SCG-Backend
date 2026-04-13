@@ -26,6 +26,8 @@ internal sealed class BatchTravelerConfiguration : IEntityTypeConfiguration<Batc
         builder.Property(t => t.DepartureCountry).HasMaxLength(100).IsRequired();
         builder.Property(t => t.PurposeOfTravel).HasMaxLength(50).IsRequired();
         builder.Property(t => t.FlightNumber).HasMaxLength(20);
+        builder.Property(t => t.PassportImageDocumentPath).HasMaxLength(300);
+        builder.Property(t => t.TicketImageDocumentPath).HasMaxLength(300);
 
         builder.HasIndex(t => new { t.BatchId, t.RowIndex });
         builder.HasIndex(t => t.PassportNumber);

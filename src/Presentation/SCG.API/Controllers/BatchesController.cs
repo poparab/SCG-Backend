@@ -23,6 +23,9 @@ namespace SCG.API.Controllers;
 [Authorize]
 public class BatchesController : ControllerBase
 {
+    private static readonly string[] AllowedDocumentExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+    private const long MaxDocumentSizeBytes = 5 * 1024 * 1024;
+
     private readonly ISender _sender;
 
     public BatchesController(ISender sender) => _sender = sender;
@@ -74,8 +77,22 @@ public class BatchesController : ControllerBase
     }
 
     [HttpPost("{id:guid}/travelers")]
-    public async Task<IActionResult> AddTraveler(Guid id, AddTravelerRequest request, CancellationToken ct)
+    public async Task<IActionResult> AddTraveler(Guid id, [FromForm] AddTravelerRequest request, CancellationToken ct)
     {
+        if (request.PassportImageDocument is null)
+            return BadRequest(new { error = "Passport image document is required." });
+
+        if (request.TicketImageDocument is null)
+            return BadRequest(new { error = "Ticket image document is required." });
+
+        var passportImageDocumentPath = await SaveTravelerDocumentAsync(request.PassportImageDocument, "Passport image document", ct);
+        if (passportImageDocumentPath is null)
+            return BadRequest(new { error = HttpContext.Items[nameof(SaveTravelerDocumentAsync)] as string ?? "Passport image document is invalid." });
+
+        var ticketImageDocumentPath = await SaveTravelerDocumentAsync(request.TicketImageDocument, "Ticket image document", ct);
+        if (ticketImageDocumentPath is null)
+            return BadRequest(new { error = HttpContext.Items[nameof(SaveTravelerDocumentAsync)] as string ?? "Ticket image document is invalid." });
+
         var command = new AddTravelerToBatchCommand(
             id,
             request.FirstNameEn,
@@ -92,7 +109,9 @@ public class BatchesController : ControllerBase
             request.PassportExpiry,
             request.DepartureCountry,
             request.PurposeOfTravel,
-            request.FlightNumber);
+            request.FlightNumber,
+            passportImageDocumentPath,
+            ticketImageDocumentPath);
 
         var result = await _sender.Send(command, ct);
 
@@ -103,8 +122,16 @@ public class BatchesController : ControllerBase
     }
 
     [HttpPut("{id:guid}/travelers/{travelerId:guid}")]
-    public async Task<IActionResult> UpdateTraveler(Guid id, Guid travelerId, UpdateTravelerRequest request, CancellationToken ct)
+    public async Task<IActionResult> UpdateTraveler(Guid id, Guid travelerId, [FromForm] UpdateTravelerRequest request, CancellationToken ct)
     {
+        var passportImageDocumentPath = await SaveTravelerDocumentAsync(request.PassportImageDocument, "Passport image document", ct);
+        if (request.PassportImageDocument is not null && passportImageDocumentPath is null)
+            return BadRequest(new { error = HttpContext.Items[nameof(SaveTravelerDocumentAsync)] as string ?? "Passport image document is invalid." });
+
+        var ticketImageDocumentPath = await SaveTravelerDocumentAsync(request.TicketImageDocument, "Ticket image document", ct);
+        if (request.TicketImageDocument is not null && ticketImageDocumentPath is null)
+            return BadRequest(new { error = HttpContext.Items[nameof(SaveTravelerDocumentAsync)] as string ?? "Ticket image document is invalid." });
+
         var command = new UpdateTravelerInBatchCommand(
             id,
             travelerId,
@@ -122,7 +149,9 @@ public class BatchesController : ControllerBase
             request.PassportExpiry,
             request.DepartureCountry,
             request.PurposeOfTravel,
-            request.FlightNumber);
+            request.FlightNumber,
+            passportImageDocumentPath,
+            ticketImageDocumentPath);
 
         var result = await _sender.Send(command, ct);
 
@@ -173,5 +202,35 @@ public class BatchesController : ControllerBase
     {
         var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return Guid.TryParse(claim, out var userId) ? userId : Guid.Empty;
+    }
+
+    private async Task<string?> SaveTravelerDocumentAsync(IFormFile? file, string label, CancellationToken ct)
+    {
+        if (file is null)
+            return null;
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedDocumentExtensions.Contains(extension))
+        {
+            HttpContext.Items[nameof(SaveTravelerDocumentAsync)] = $"{label} must be PDF, JPG, JPEG, or PNG.";
+            return null;
+        }
+
+        if (file.Length > MaxDocumentSizeBytes)
+        {
+            HttpContext.Items[nameof(SaveTravelerDocumentAsync)] = $"{label} must not exceed 5 MB.";
+            return null;
+        }
+
+        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "uploads", "batch-traveler-documents");
+        Directory.CreateDirectory(uploadsDir);
+
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream, ct);
+
+        return Path.Combine("uploads", "batch-traveler-documents", fileName).Replace('\\', '/');
     }
 }

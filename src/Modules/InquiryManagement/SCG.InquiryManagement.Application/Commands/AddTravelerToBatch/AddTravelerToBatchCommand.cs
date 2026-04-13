@@ -19,4 +19,6 @@ public sealed record AddTravelerToBatchCommand(
     DateTime PassportExpiry,
     string DepartureCountry,
     string PurposeOfTravel,
-    string? FlightNumber) : ICommand<Guid>;
+    string? FlightNumber,
+    string PassportImageDocumentPath,
+    string TicketImageDocumentPath) : ICommand<Guid>;

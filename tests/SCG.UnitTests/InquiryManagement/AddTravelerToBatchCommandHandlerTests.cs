@@ -31,7 +31,9 @@ public sealed class AddTravelerToBatchCommandHandlerTests
         PassportExpiry: DateTime.UtcNow.AddYears(5),
         DepartureCountry: "United States",
         PurposeOfTravel: "Tourism",
-        FlightNumber: null);
+        FlightNumber: null,
+        PassportImageDocumentPath: "uploads/batch-traveler-documents/passport.pdf",
+        TicketImageDocumentPath: "uploads/batch-traveler-documents/ticket.pdf");
 
     private static Batch CreateDraftBatch()
     {
@@ -52,6 +54,8 @@ public sealed class AddTravelerToBatchCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeEmpty();
         batch.TravelerCount.Should().Be(1);
+        batch.Travelers[0].PassportImageDocumentPath.Should().Be("uploads/batch-traveler-documents/passport.pdf");
+        batch.Travelers[0].TicketImageDocumentPath.Should().Be("uploads/batch-traveler-documents/ticket.pdf");
         await _batchRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 

@@ -46,7 +46,9 @@ public sealed class AddTravelerToBatchCommandHandler : ICommandHandler<AddTravel
             request.PassportExpiry,
             request.DepartureCountry,
             request.PurposeOfTravel,
-            request.FlightNumber);
+            request.FlightNumber,
+            request.PassportImageDocumentPath,
+            request.TicketImageDocumentPath);
 
         batch.AddTraveler(traveler);
         await _batchRepository.SaveChangesAsync(cancellationToken);

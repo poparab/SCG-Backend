@@ -32,6 +32,8 @@ public sealed record BatchTravelerDto(
     string DepartureCountry,
     string PurposeOfTravel,
     string? FlightNumber,
+    bool HasPassportImageDocument,
+    bool HasTicketImageDocument,
     Guid? InquiryId,
     string? InquiryStatus,
     string? InquiryReferenceNumber);

@@ -67,5 +67,13 @@ public sealed class AddTravelerToBatchCommandValidator : AbstractValidator<AddTr
         RuleFor(x => x.TransitCountries)
             .MaximumLength(500).WithMessage("Transit countries must not exceed 500 characters.")
             .When(x => x.TransitCountries is not null);
+
+        RuleFor(x => x.PassportImageDocumentPath)
+            .NotEmpty().WithMessage("Passport image document is required.")
+            .MaximumLength(300).WithMessage("Passport image document path must not exceed 300 characters.");
+
+        RuleFor(x => x.TicketImageDocumentPath)
+            .NotEmpty().WithMessage("Ticket image document is required.")
+            .MaximumLength(300).WithMessage("Ticket image document path must not exceed 300 characters.");
     }
 }

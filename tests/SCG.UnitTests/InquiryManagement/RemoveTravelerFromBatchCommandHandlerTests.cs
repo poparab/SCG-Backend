@@ -22,7 +22,9 @@ public sealed class RemoveTravelerFromBatchCommandHandlerTests
             batch.Id, 1, "John", "Doe", null, null,
             "A12345678", "US", new DateTime(1990, 1, 15),
             TravelerGender.Male, DateTime.UtcNow.AddDays(30), "CAI", null,
-            DateTime.UtcNow.AddYears(5), "United States", "Tourism", null);
+            DateTime.UtcNow.AddYears(5), "United States", "Tourism", null,
+            "uploads/batch-traveler-documents/passport.pdf",
+            "uploads/batch-traveler-documents/ticket.pdf");
         batch.AddTraveler(traveler);
         travelerId = traveler.Id;
         return batch;

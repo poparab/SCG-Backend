@@ -41,6 +41,8 @@ internal sealed class GetBatchByIdQueryHandler : IQueryHandler<GetBatchByIdQuery
                 t.DepartureCountry,
                 t.PurposeOfTravel,
                 t.FlightNumber,
+                !string.IsNullOrWhiteSpace(t.PassportImageDocumentPath),
+                !string.IsNullOrWhiteSpace(t.TicketImageDocumentPath),
                 t.InquiryId,
                 t.Inquiry?.Status.ToString(),
                 t.Inquiry?.ReferenceNumber))

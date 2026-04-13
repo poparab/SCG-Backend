@@ -43,7 +43,9 @@ public sealed class UpdateTravelerInBatchCommandHandler : ICommandHandler<Update
             request.PassportExpiry,
             request.DepartureCountry,
             request.PurposeOfTravel,
-            request.FlightNumber);
+            request.FlightNumber,
+            request.PassportImageDocumentPath ?? traveler.PassportImageDocumentPath,
+            request.TicketImageDocumentPath ?? traveler.TicketImageDocumentPath);
 
         await _batchRepository.SaveChangesAsync(cancellationToken);
 

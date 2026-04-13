@@ -22,7 +22,9 @@ public sealed class UpdateTravelerInBatchCommandHandlerTests
             batch.Id, 1, "John", "Doe", null, null,
             "A12345678", "US", new DateTime(1990, 1, 15),
             TravelerGender.Male, DateTime.UtcNow.AddDays(30), "CAI", null,
-            DateTime.UtcNow.AddYears(5), "United States", "Tourism", null);
+            DateTime.UtcNow.AddYears(5), "United States", "Tourism", null,
+            "uploads/batch-traveler-documents/existing-passport.pdf",
+            "uploads/batch-traveler-documents/existing-ticket.pdf");
         batch.AddTraveler(traveler);
         travelerId = traveler.Id;
         return batch;
@@ -45,7 +47,9 @@ public sealed class UpdateTravelerInBatchCommandHandlerTests
         PassportExpiry: DateTime.UtcNow.AddYears(5),
         DepartureCountry: "United Kingdom",
         PurposeOfTravel: "Business",
-        FlightNumber: null);
+        FlightNumber: null,
+        PassportImageDocumentPath: null,
+        TicketImageDocumentPath: null);
 
     [Fact]
     public async Task Handle_DraftBatch_UpdatesTravelerSuccessfully()
@@ -63,7 +67,31 @@ public sealed class UpdateTravelerInBatchCommandHandlerTests
         updatedTraveler.FirstNameEn.Should().Be("Jane");
         updatedTraveler.LastNameEn.Should().Be("Smith");
         updatedTraveler.PassportNumber.Should().Be("B98765432");
+        updatedTraveler.PassportImageDocumentPath.Should().Be("uploads/batch-traveler-documents/existing-passport.pdf");
+        updatedTraveler.TicketImageDocumentPath.Should().Be("uploads/batch-traveler-documents/existing-ticket.pdf");
         await _batchRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_ReplacementDocumentPaths_UpdatesStoredDocuments()
+    {
+        // Arrange
+        var batch = CreateBatchWithTraveler(out var travelerId);
+        _batchRepository.GetByIdWithTravelersAsync(batch.Id, Arg.Any<CancellationToken>()).Returns(batch);
+        var command = UpdateCommand(batch.Id, travelerId) with
+        {
+            PassportImageDocumentPath = "uploads/batch-traveler-documents/new-passport.pdf",
+            TicketImageDocumentPath = "uploads/batch-traveler-documents/new-ticket.pdf"
+        };
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        var updatedTraveler = batch.Travelers.First(t => t.Id == travelerId);
+        updatedTraveler.PassportImageDocumentPath.Should().Be("uploads/batch-traveler-documents/new-passport.pdf");
+        updatedTraveler.TicketImageDocumentPath.Should().Be("uploads/batch-traveler-documents/new-ticket.pdf");
     }
 
     [Fact]
