@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Globalization;
 using System.Text.Json;
 using SCG.IntegrationTests.Infrastructure;
 
@@ -17,8 +18,8 @@ public sealed class WalletTests : IntegrationTestBase
 
         // Admin credits wallet
         await LoginAsAdminAsync();
-        var creditBody = new { amount = 5000m, referenceNumber = "REF-001", notes = "Initial top-up" };
-        var creditResponse = await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit", creditBody);
+        using var creditBody = CreateCreditRequest(5000m, reference: "REF-001", notes: "Initial top-up");
+        var creditResponse = await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", creditBody);
         creditResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Verify balance
@@ -34,10 +35,10 @@ public sealed class WalletTests : IntegrationTestBase
 
         // Admin credits twice
         await LoginAsAdminAsync();
-        await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit",
-            new { amount = 1000m, referenceNumber = "REF-A01", notes = "First" });
-        await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit",
-            new { amount = 2000m, referenceNumber = "REF-A02", notes = "Second" });
+        using var firstCredit = CreateCreditRequest(1000m, reference: "REF-A01", notes: "First");
+        using var secondCredit = CreateCreditRequest(2000m, paymentMethod: "BankTransfer", reference: "REF-A02", notes: "Second");
+        await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", firstCredit);
+        await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", secondCredit);
 
         // Verify
         var wallet = await Client.GetFromJsonAsync<JsonElement>($"/api/agencies/{agencyId}/wallet");
@@ -51,10 +52,10 @@ public sealed class WalletTests : IntegrationTestBase
         var (token, agencyId) = await RegisterApproveAndLoginAgencyAsync("wallet-tx@agency.com");
 
         await LoginAsAdminAsync();
-        await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit",
-            new { amount = 500m, referenceNumber = "REF-TX1", notes = "Credit 1" });
-        await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit",
-            new { amount = 750m, referenceNumber = "REF-TX2", notes = "Credit 2" });
+        using var firstCredit = CreateCreditRequest(500m, reference: "REF-TX1", notes: "Credit 1");
+        using var secondCredit = CreateCreditRequest(750m, reference: "REF-TX2", notes: "Credit 2");
+        await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", firstCredit);
+        await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", secondCredit);
 
         // Act
         var response = await Client.GetAsync($"/api/agencies/{agencyId}/wallet/transactions?page=1&pageSize=10");
@@ -73,19 +74,60 @@ public sealed class WalletTests : IntegrationTestBase
         await LoginAsAdminAsync();
 
         // Act
-        var creditBody = new { amount = 0m, referenceNumber = "REF-ZERO", notes = "Zero" };
-        var response = await Client.PostAsJsonAsync($"/api/agencies/{agencyId}/wallet/credit", creditBody);
+        using var creditBody = CreateCreditRequest(0m, reference: "REF-ZERO", notes: "Zero");
+        var response = await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", creditBody);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
+    public async Task CreditWallet_WithoutReference_Returns200()
+    {
+        // Arrange
+        var (token, agencyId) = await RegisterApproveAndLoginAgencyAsync("wallet-noref@agency.com");
+        await LoginAsAdminAsync();
+
+        // Act
+        using var creditBody = CreateCreditRequest(900m, notes: "No reference provided");
+        var response = await Client.PostAsync($"/api/agencies/{agencyId}/wallet/credit", creditBody);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var wallet = await Client.GetFromJsonAsync<JsonElement>($"/api/agencies/{agencyId}/wallet");
+        wallet.GetProperty("balance").GetDecimal().Should().Be(900m);
+    }
+
+    [Fact]
     public async Task CreditWallet_Anonymous_Returns401()
     {
         ClearAuth();
-        var response = await Client.PostAsJsonAsync("/api/agencies/00000000-0000-0000-0000-000000000001/wallet/credit",
-            new { amount = 100m, referenceNumber = "REF-ANON" });
+        using var creditBody = CreateCreditRequest(100m, reference: "REF-ANON");
+        var response = await Client.PostAsync("/api/agencies/00000000-0000-0000-0000-000000000001/wallet/credit", creditBody);
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    private static MultipartFormDataContent CreateCreditRequest(
+        decimal amount,
+        string paymentMethod = "Cash",
+        string? reference = null,
+        string? notes = null)
+    {
+        var content = new MultipartFormDataContent();
+        content.Add(new StringContent(amount.ToString(CultureInfo.InvariantCulture)), "Amount");
+        content.Add(new StringContent(paymentMethod), "PaymentMethod");
+
+        if (!string.IsNullOrWhiteSpace(reference))
+        {
+            content.Add(new StringContent(reference), "Reference");
+        }
+
+        if (!string.IsNullOrWhiteSpace(notes))
+        {
+            content.Add(new StringContent(notes), "Notes");
+        }
+
+        return content;
     }
 }

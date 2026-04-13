@@ -95,4 +95,24 @@ public sealed class CreditWalletCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.NewBalance.Should().Be(500m);
     }
+
+    [Fact]
+    public async Task Handle_EmptyReference_GeneratesFallbackReference()
+    {
+        // Arrange
+        var agencyId = Guid.NewGuid();
+        var wallet = Wallet.Create(agencyId);
+        _walletRepository.GetByAgencyIdAsync(agencyId, Arg.Any<CancellationToken>()).Returns(wallet);
+
+        var command = new CreditWalletCommand(agencyId, 250m, "Cash", string.Empty, "Top-up", null);
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        wallet.Transactions.Should().ContainSingle();
+        wallet.Transactions[0].ReferenceNumber.Should().StartWith("ADMIN-TOPUP-");
+        wallet.Transactions[0].ReferenceNumber.Length.Should().BeLessThanOrEqualTo(50);
+    }
 }

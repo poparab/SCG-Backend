@@ -1,5 +1,6 @@
 using SCG.Application.Abstractions.Messaging;
 using SCG.Rules.Application.Abstractions;
+using SCG.Rules.Domain.Entities;
 using SCG.SharedKernel;
 
 namespace SCG.Rules.Application.Commands.UpdateAgencyNationality;
@@ -20,7 +21,10 @@ public sealed class UpdateAgencyNationalityCommandHandler
             request.AgencyId, request.NationalityId, cancellationToken);
 
         if (agencyNationality is null)
-            return Result.Failure("Agency nationality record not found.");
+        {
+            agencyNationality = AgencyNationality.Create(request.AgencyId, request.NationalityId);
+            await _repository.AddAgencyNationalityAsync(agencyNationality, cancellationToken);
+        }
 
         if (request.CustomFee.HasValue || request.CustomFee is null)
             agencyNationality.UpdateCustomFee(request.CustomFee);

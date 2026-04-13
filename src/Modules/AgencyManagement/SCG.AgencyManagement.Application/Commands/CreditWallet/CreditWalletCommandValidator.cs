@@ -17,7 +17,7 @@ public sealed class CreditWalletCommandValidator : AbstractValidator<CreditWalle
             .MaximumLength(50).WithMessage("Payment method must not exceed 50 characters.");
 
         RuleFor(x => x.ReferenceNumber)
-            .NotEmpty().WithMessage("Payment reference number is required.")
-            .MaximumLength(100).WithMessage("Reference number must not exceed 100 characters.");
+            .MaximumLength(50).WithMessage("Reference number must not exceed 50 characters.")
+            .When(x => !string.IsNullOrWhiteSpace(x.ReferenceNumber));
     }
 }

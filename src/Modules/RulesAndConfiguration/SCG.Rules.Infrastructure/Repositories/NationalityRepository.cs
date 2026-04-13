@@ -45,6 +45,11 @@ internal sealed class NationalityRepository : INationalityRepository
         await _context.Pricings.AddAsync(pricing, ct);
     }
 
+    public async Task AddAgencyNationalityAsync(AgencyNationality agencyNationality, CancellationToken ct)
+    {
+        await _context.AgencyNationalities.AddAsync(agencyNationality, ct);
+    }
+
     public async Task<Pricing?> GetActivePricingForNationalityAsync(string nationalityCode, Guid inquiryTypeId, CancellationToken ct)
     {
         return await _context.Pricings
@@ -221,15 +226,24 @@ internal sealed class NationalityRepository : INationalityRepository
 
     public async Task<List<AgencyNationalityDto>> GetAgencyNationalitiesAsync(Guid agencyId, CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
-
         var records = await _context.AgencyNationalities
             .AsNoTracking()
             .Where(an => an.AgencyId == agencyId)
             .Include(an => an.Nationality)
             .ToListAsync(ct);
 
-        var nationalityCodes = records.Select(r => r.Nationality.Code).Distinct().ToList();
+        var allNationalities = await _context.Nationalities
+            .AsNoTracking()
+            .OrderBy(n => n.NameEn)
+            .ToListAsync(ct);
+
+        if (allNationalities.Count == 0)
+        {
+            return [];
+        }
+
+        var recordMap = records.ToDictionary(r => r.NationalityId, r => r);
+        var nationalityCodes = allNationalities.Select(n => n.Code).Distinct().ToList();
 
         var defaultFees = await _context.Pricings
             .AsNoTracking()
@@ -244,23 +258,27 @@ internal sealed class NationalityRepository : INationalityRepository
 
         var feeMap = defaultFees.ToDictionary(x => x.Code!, x => x.Fee);
 
-        return records.Select(an =>
+        return allNationalities.Select(nationality =>
         {
-            var defaultFee = feeMap.GetValueOrDefault(an.Nationality.Code, 0m);
-            var effectiveFee = an.CustomFee ?? defaultFee;
+            recordMap.TryGetValue(nationality.Id, out var agencyNationality);
+
+            var defaultFee = feeMap.GetValueOrDefault(nationality.Code, 0m);
+            var customFee = agencyNationality?.CustomFee;
+            var effectiveFee = customFee ?? defaultFee;
+            var dtoId = agencyNationality?.Id ?? nationality.Id;
 
             return new AgencyNationalityDto(
-                an.Id,
-                an.AgencyId,
-                an.NationalityId,
-                an.Nationality.Code,
-                an.Nationality.NameAr,
-                an.Nationality.NameEn,
-                an.Nationality.RequiresInquiry,
+                dtoId,
+                agencyId,
+                nationality.Id,
+                nationality.Code,
+                nationality.NameAr,
+                nationality.NameEn,
+                nationality.RequiresInquiry,
                 defaultFee,
-                an.CustomFee,
+                customFee,
                 effectiveFee,
-                an.IsEnabled);
+                agencyNationality?.IsEnabled ?? true);
         })
         .OrderBy(x => x.NationalityNameEn)
         .ToList();

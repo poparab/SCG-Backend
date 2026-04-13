@@ -19,6 +19,7 @@ public interface INationalityRepository
     Task SaveChangesAsync(CancellationToken ct = default);
 
     // AgencyNationality Commands
+    Task AddAgencyNationalityAsync(AgencyNationality agencyNationality, CancellationToken ct = default);
     Task<AgencyNationality?> GetAgencyNationalityAsync(Guid agencyId, Guid nationalityId, CancellationToken ct = default);
 
     // Queries

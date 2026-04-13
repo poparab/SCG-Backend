@@ -162,11 +162,10 @@ public class AgenciesController : ControllerBase
     [Authorize(Roles = "Admin,SuperAdmin,Agency,AgencyRepresentative")]
     public async Task<IActionResult> GetAgencyNationalities(Guid id, CancellationToken ct)
     {
-        var role = User.FindFirst("role")?.Value;
         var agencyIdClaim = User.FindFirst("agencyId")?.Value;
+        var isAdminUser = User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
 
-        if (!string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(role, "SuperAdmin", StringComparison.OrdinalIgnoreCase)
+        if (!isAdminUser
             && (!Guid.TryParse(agencyIdClaim, out var agencyId) || agencyId != id))
         {
             return Forbid();

@@ -7,6 +7,7 @@ namespace SCG.AgencyManagement.Application.Commands.CreditWallet;
 public sealed class CreditWalletCommandHandler : ICommandHandler<CreditWalletCommand, CreditWalletResponse>
 {
     private readonly IWalletRepository _walletRepository;
+    private const string AutoReferencePrefix = "ADMIN-TOPUP-";
 
     public CreditWalletCommandHandler(IWalletRepository walletRepository)
     {
@@ -26,12 +27,24 @@ public sealed class CreditWalletCommandHandler : ICommandHandler<CreditWalletCom
         if (wallet is null)
             return Result<CreditWalletResponse>.Failure("Wallet not found for the specified agency.");
 
+        var referenceNumber = NormalizeReferenceNumber(request.ReferenceNumber);
+
         var transaction = wallet.Credit(
-            request.Amount, request.ReferenceNumber, request.Notes, "Admin",
+            request.Amount, referenceNumber, request.Notes, "Admin",
             request.PaymentMethod, request.EvidenceFileName);
         await _walletRepository.SaveChangesAsync(cancellationToken);
 
         return Result<CreditWalletResponse>.Success(
             new CreditWalletResponse(wallet.Balance, transaction.Id));
+    }
+
+    private static string NormalizeReferenceNumber(string referenceNumber)
+    {
+        if (!string.IsNullOrWhiteSpace(referenceNumber))
+        {
+            return referenceNumber.Trim();
+        }
+
+        return $"{AutoReferencePrefix}{Guid.NewGuid():N}";
     }
 }
