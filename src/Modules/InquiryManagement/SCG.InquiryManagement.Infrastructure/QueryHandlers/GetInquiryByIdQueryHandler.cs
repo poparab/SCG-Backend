@@ -24,17 +24,6 @@ internal sealed class GetInquiryByIdQueryHandler : IQueryHandler<GetInquiryByIdQ
         return Result<InquiryDetailDto>.Success(new InquiryDetailDto(
             inquiry.Id,
             inquiry.ReferenceNumber,
-            inquiry.FirstNameEn,
-            inquiry.LastNameEn,
-            inquiry.FirstNameAr,
-            inquiry.LastNameAr,
-            inquiry.PassportNumber,
-            inquiry.NationalityCode,
-            inquiry.DateOfBirth,
-            inquiry.Gender.ToString(),
-            inquiry.TravelDate,
-            inquiry.ArrivalAirport,
-            inquiry.TransitCountries,
             inquiry.Status.ToString(),
             inquiry.Fee,
             inquiry.PaymentReference,
@@ -44,6 +33,22 @@ internal sealed class GetInquiryByIdQueryHandler : IQueryHandler<GetInquiryByIdQ
             inquiry.DocumentUrl,
             inquiry.BatchId,
             inquiry.AgencyId,
-            inquiry.CreatedAt));
+            inquiry.CreatedAt,
+            new InquiryTravelerDto(
+                inquiry.FirstNameEn,
+                inquiry.LastNameEn,
+                inquiry.FirstNameAr,
+                inquiry.LastNameAr,
+                inquiry.PassportNumber,
+                inquiry.NationalityCode,
+                inquiry.DateOfBirth,
+                inquiry.Gender.ToString(),
+                inquiry.TravelDate,
+                inquiry.ArrivalAirport,
+                inquiry.TransitCountries,
+                inquiry.DepartureCountry,
+                inquiry.PassportExpiry,
+                inquiry.PurposeOfTravel,
+                inquiry.FlightNumber)));
     }
 }

@@ -7,6 +7,19 @@ public sealed record GetInquiryByIdQuery(Guid InquiryId) : IQuery<InquiryDetailD
 public sealed record InquiryDetailDto(
     Guid Id,
     string ReferenceNumber,
+    string Status,
+    decimal Fee,
+    string? PaymentReference,
+    string? ResultCode,
+    string? RejectionReason,
+    DateTime? ProcessedAt,
+    string? DocumentUrl,
+    Guid? BatchId,
+    Guid? AgencyId,
+    DateTime CreatedAt,
+    InquiryTravelerDto Traveler);
+
+public sealed record InquiryTravelerDto(
     string FirstNameEn,
     string LastNameEn,
     string? FirstNameAr,
@@ -18,13 +31,7 @@ public sealed record InquiryDetailDto(
     DateTime TravelDate,
     string? ArrivalAirport,
     string? TransitCountries,
-    string Status,
-    decimal Fee,
-    string? PaymentReference,
-    string? ResultCode,
-    string? RejectionReason,
-    DateTime? ProcessedAt,
-    string? DocumentUrl,
-    Guid? BatchId,
-    Guid? AgencyId,
-    DateTime CreatedAt);
+    string? DepartureCountry,
+    DateTime? PassportExpiry,
+    string? PurposeOfTravel,
+    string? FlightNumber);

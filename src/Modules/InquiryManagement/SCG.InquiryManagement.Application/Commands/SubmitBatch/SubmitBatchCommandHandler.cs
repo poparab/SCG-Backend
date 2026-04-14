@@ -86,7 +86,15 @@ public sealed class SubmitBatchCommandHandler : ICommandHandler<SubmitBatchComma
                 traveler.TravelDate,
                 feePerNationality[traveler.NationalityCode],
                 batch.AgencyId,
-                batch.Id);
+                batch.Id,
+                traveler.FirstNameAr,
+                traveler.LastNameAr,
+                traveler.ArrivalAirport,
+                traveler.TransitCountries,
+                traveler.DepartureCountry,
+                traveler.PassportExpiry,
+                traveler.PurposeOfTravel,
+                traveler.FlightNumber);
 
             await _inquiryRepo.AddAsync(inquiry, cancellationToken);
             traveler.LinkInquiry(inquiry.Id);

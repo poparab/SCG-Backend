@@ -21,6 +21,9 @@ internal sealed class InquiryConfiguration : IEntityTypeConfiguration<Inquiry>
         builder.Property(i => i.Gender).HasConversion<string>().HasMaxLength(10);
         builder.Property(i => i.ArrivalAirport).HasMaxLength(100);
         builder.Property(i => i.TransitCountries).HasMaxLength(500);
+        builder.Property(i => i.DepartureCountry).HasMaxLength(100);
+        builder.Property(i => i.PurposeOfTravel).HasMaxLength(50);
+        builder.Property(i => i.FlightNumber).HasMaxLength(20);
         builder.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
         builder.Property(i => i.ResultCode).HasMaxLength(50);
         builder.Property(i => i.RejectionReason).HasMaxLength(1000);

@@ -23,6 +23,10 @@ public sealed class Inquiry : AggregateRoot<Guid>
     public DateTime TravelDate { get; private set; }
     public string? ArrivalAirport { get; private set; }
     public string? TransitCountries { get; private set; }
+    public string? DepartureCountry { get; private set; }
+    public DateTime? PassportExpiry { get; private set; }
+    public string? PurposeOfTravel { get; private set; }
+    public string? FlightNumber { get; private set; }
 
     // Status & result
     public InquiryStatus Status { get; private set; } = InquiryStatus.Draft;
@@ -43,7 +47,11 @@ public sealed class Inquiry : AggregateRoot<Guid>
         string passportNumber, string nationalityCode,
         DateTime dateOfBirth, TravelerGender gender,
         DateTime travelDate, decimal fee,
-        Guid? agencyId = null, Guid? batchId = null)
+        Guid? agencyId = null, Guid? batchId = null,
+        string? firstNameAr = null, string? lastNameAr = null,
+        string? arrivalAirport = null, string? transitCountries = null,
+        string? departureCountry = null, DateTime? passportExpiry = null,
+        string? purposeOfTravel = null, string? flightNumber = null)
     {
         return new Inquiry
         {
@@ -52,11 +60,19 @@ public sealed class Inquiry : AggregateRoot<Guid>
             ReferenceNumber = referenceNumber,
             FirstNameEn = firstNameEn,
             LastNameEn = lastNameEn,
+            FirstNameAr = firstNameAr,
+            LastNameAr = lastNameAr,
             PassportNumber = passportNumber,
             NationalityCode = nationalityCode,
             DateOfBirth = dateOfBirth,
             Gender = gender,
             TravelDate = travelDate,
+            ArrivalAirport = arrivalAirport,
+            TransitCountries = transitCountries,
+            DepartureCountry = departureCountry,
+            PassportExpiry = passportExpiry,
+            PurposeOfTravel = purposeOfTravel,
+            FlightNumber = flightNumber,
             Fee = fee,
             AgencyId = agencyId,
             BatchId = batchId,
